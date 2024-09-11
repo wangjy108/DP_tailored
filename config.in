@@ -1,0 +1,14 @@
+[lbg_config]
+lbg_project=
+lbg_machine_type=
+lbg_image=registry.dp.tech/dptech/prod-1364/tailored:biconfgen0.0.1
+N_in_group=10
+
+[general]
+sdf_path=
+sdf_file=
+
+[sample]
+method=SQM
+rmsd_cutoff=2.0
+energy_window=20.0
