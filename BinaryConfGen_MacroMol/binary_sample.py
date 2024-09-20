@@ -52,17 +52,23 @@ class binary_sample():
             applied_MM_energy_window = 15
         else:
             applied_MM_energy_window = self.energy_window
+        
+        if self.rmsd_cutoff <= 0:
+            applied_MM_rmsd_cutoff = 1.0
+        else:
+            applied_MM_rmsd_cutoff = self.rmsd_cutoff
 
 
         sample(input_sdf=self.db_name,
                 type=1,
                 save_frame=350,
                 mm_energy_window=applied_MM_energy_window,
-                mm_rmsd_cutoff=self.rmsd_cutoff).run()
+                mm_rmsd_cutoff=applied_MM_rmsd_cutoff).run()
         
         if not (os.path.isfile("SAVE.sdf") and os.path.getsize("SAVE.sdf")):
             logging.info("Failed at MM sampling, abort")
             return None
+        
         
         reduced = cluster(input_sdf="SAVE.sdf",
                             rmsd_cutoff_cluster=self.rmsd_cutoff,
@@ -71,10 +77,10 @@ class binary_sample():
         
         ## perform opt at h2o level
         opted_hoh = sysopt(input_rdmol_obj=reduced, 
-                       rmsd_cutoff=self.rmsd_cutoff,
-                      # save_n=self.sp_max_n,
-                       HA_constrain=False,
-                       if_write_sdf=False).run()
+                            rmsd_cutoff=self.rmsd_cutoff,
+                            # save_n=self.sp_max_n,
+                            HA_constrain=False,
+                            if_write_sdf=False).run()
         
         sorted_opted_hoh = sorted(opted_hoh, key=lambda x: float(x.GetProp("Energy_xtb")))
         if self.energy_window < 0:
