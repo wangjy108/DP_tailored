@@ -48,10 +48,16 @@ class binary_sample():
     def sample_mm(self):
         ## sampling from vacuum
 
+        if self.energy_window < 0:
+            applied_MM_energy_window = 15
+        else:
+            applied_MM_energy_window = self.energy_window
+
+
         sample(input_sdf=self.db_name,
                 type=1,
                 save_frame=350,
-                mm_energy_window=self.energy_window,
+                mm_energy_window=applied_MM_energy_window,
                 mm_rmsd_cutoff=self.rmsd_cutoff).run()
         
         if not (os.path.isfile("SAVE.sdf") and os.path.getsize("SAVE.sdf")):
@@ -71,8 +77,11 @@ class binary_sample():
                        if_write_sdf=False).run()
         
         sorted_opted_hoh = sorted(opted_hoh, key=lambda x: float(x.GetProp("Energy_xtb")))
-        saved_opt_hoh = [cc for cc in sorted_opted_hoh \
-                         if (float(cc.GetProp("Energy_xtb")) - float(sorted_opted_hoh[0].GetProp("Energy_xtb")))* 627.51 <= self.energy_window]
+        if self.energy_window < 0:
+            saved_opt_hoh = sorted_opted_hoh
+        else:
+            saved_opt_hoh = [cc for cc in sorted_opted_hoh \
+                            if (float(cc.GetProp("Energy_xtb")) - float(sorted_opted_hoh[0].GetProp("Energy_xtb")))* 627.51 <= self.energy_window]
         
         opted_chcl3 = sysopt(input_rdmol_obj=reduced, 
                             rmsd_cutoff=self.rmsd_cutoff,
@@ -82,7 +91,11 @@ class binary_sample():
                             if_write_sdf=False).run()
         
         sorted_opted_chcl3 = sorted(opted_chcl3, key=lambda x: float(x.GetProp("Energy_xtb")))
-        saved_opted_chcl3 = [cc for cc in sorted_opted_chcl3 \
+
+        if self.energy_window < 0:
+            saved_opted_chcl3 = sorted_opted_chcl3
+        else:
+            saved_opted_chcl3 = [cc for cc in sorted_opted_chcl3 \
                          if (float(cc.GetProp("Energy_xtb")) - float(sorted_opted_chcl3[0].GetProp("Energy_xtb")))* 627.51 <= self.energy_window]
 
         os.system("rm -f SAVE.sdf")
@@ -94,9 +107,7 @@ class binary_sample():
         sample(input_sdf=self.db_name,
                 type=2,
                 run_temperature=350,
-                save_frame=350,
-                mm_energy_window=self.energy_window,
-                mm_rmsd_cutoff=self.rmsd_cutoff).run()
+                save_frame=350).run()
         
         if not (os.path.isfile("SAVE.sdf") and os.path.getsize("SAVE.sdf")):
             logging.info("Failed at SQM_hoh sampling, abort")
@@ -115,7 +126,11 @@ class binary_sample():
                        if_write_sdf=False).run()
         
         sorted_opted_hoh = sorted(opted_hoh, key=lambda x: float(x.GetProp("Energy_xtb")))
-        saved_opt_hoh = [cc for cc in sorted_opted_hoh \
+
+        if self.energy_window < 0:
+            saved_opt_hoh = sorted_opted_hoh
+        else:
+            saved_opt_hoh = [cc for cc in sorted_opted_hoh \
                          if (float(cc.GetProp("Energy_xtb")) - float(sorted_opted_hoh[0].GetProp("Energy_xtb")))* 627.51 <= self.energy_window]
         
         os.system("rm -f SAVE.sdf")
@@ -125,9 +140,8 @@ class binary_sample():
                 type=2,
                 run_temperature=350,
                 save_frame=350,
-                solvation="chcl3",
-                mm_energy_window=self.energy_window,
-                mm_rmsd_cutoff=self.rmsd_cutoff).run()
+                solvation="chcl3").run()
+                
         
         if not (os.path.isfile("SAVE.sdf") and os.path.getsize("SAVE.sdf")):
             logging.info("Failed at SQM_chcl3 sampling, abort")
@@ -146,7 +160,11 @@ class binary_sample():
                             if_write_sdf=False).run()
         
         sorted_opted_chcl3 = sorted(opted_chcl3, key=lambda x: float(x.GetProp("Energy_xtb")))
-        saved_opted_chcl3 = [cc for cc in sorted_opted_chcl3 \
+
+        if self.energy_window < 0:
+            saved_opted_chcl3 = sorted_opted_chcl3
+        else:
+            saved_opted_chcl3 = [cc for cc in sorted_opted_chcl3 \
                          if (float(cc.GetProp("Energy_xtb")) - float(sorted_opted_chcl3[0].GetProp("Energy_xtb")))* 627.51 <= self.energy_window]
 
         os.system("rm -f SAVE.sdf")
