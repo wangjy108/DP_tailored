@@ -1,7 +1,7 @@
 [lbg_config]
 lbg_project=
 lbg_machine_type=
-lbg_image=registry.dp.tech/dptech/prod-1364/tailored:biconfgen0.0.1
+lbg_image=registry.dp.tech/dptech/prod-1364/tailored:biconfgen0.0.2
 N_in_group=10
 
 [general]
