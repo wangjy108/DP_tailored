@@ -206,48 +206,65 @@ class binary_sample():
 
         return saved_opt_hoh, saved_opted_chcl3
 
-    def run(self):
-        _dic = {"MM": self.sample_mm,
-                "SQM": self.sample_sqm}
-        
-        try:
-            _dic[self.method]
-        except Exception as e:
-            logging.info("Wrong method type, choose from ['SQM', 'MM'] and run again, abort")
-            return 
-        
-        if not self.db_name:
-            logging.info("No input, nothing to do, abort")
-            return 
-        
-        prefix = ".".join(self.db_name.split(".")[:-1])
+def lbg_api(input_sdf, method, rmsd_cutoff, energy_window):
+    
+    main_dir = os.getcwd()
 
-        work_dir = os.path.join(self.main_dir, f"{prefix}_{self.method}")
+    try:
+        mol_db = [mm for mm in Chem.SDMolSupplier(input_sdf, removeHs=False) if mm]
+    except Exception as e:
+        logging.info("Wrong input sdf file, abort")
+        return 
+    
+    if not mol_db:
+        logging.info("Wrong input sdf file, abort")
+        return
+    
+    name_tag = [mm.GetProp("_Name") for idx, mm in enumerate(mol_db)]
 
-        if not os.path.exists(work_dir):
-            os.mkdir(work_dir)
-        
-        os.chdir(work_dir)
-        target = os.path.join(self.main_dir, self.db_name)
-        os.system(f"mv {target} {work_dir}")
+    if len(set(name_tag)) != len(mol_db):
+        assign_name = [".".join(input_sdf.split(".")[:-1])+"_"+str(i) for i in range(len(mol_db))]
+    else:
+        assign_name = name_tag
+    
+    #_dic = {}
+    
+    for idx, mm in enumerate(mol_db):
+        logging.info(f"Working with {assign_name[idx]}...")
 
-        saved_opt_hoh, saved_opted_chcl3 = _dic[self.method]()
+        cc = Chem.SDWriter(f"{assign_name[idx]}.sdf")
+        cc.write(mm)
+        cc.close()
+
+        sample_hoh, sample_chcl3 = binary_sample(input_sdf=f"{assign_name[idx]}.sdf", 
+                                                    method=method,
+                                                    rmsd_cutoff=rmsd_cutoff,
+                                                    energy_window=energy_window).sample()
 
         cc_hoh = Chem.SDWriter("sampled_hoh.sdf")
-        for each in saved_opt_hoh:
+        for each in sample_hoh:
             cc_hoh.write(each)
         cc_hoh.close()
 
         cc_chcl3 = Chem.SDWriter("sampled_chcl3.sdf")
-        for every in saved_opted_chcl3:
+        for every in sample_chcl3:
             cc_chcl3.write(every)
         cc_chcl3.close()
 
-        logging.info(f"Sampling done for {self.db_name}")
+        os.chdir(main_dir)
 
-        os.chdir(self.main_dir)
+        #with open("sampled_hoh.sdf", "r+") as hoh:
+        #    content_hoh = [cc for cc in hoh.readlines()]
+        
+        #with open("sampled_chcl3.sdf", "r+") as chcl3:
+        #    content_chcl3 = [dd for dd in chcl3.readlines()]
+        
+        #_dic.setdefault(f"{assign_name[idx]}_{method}", [content_hoh, content_chcl3])
 
-        return 
+        #logging.info(f"Sampling done for {assign_name[idx]}")
+    
+    return 
+
 
 def app_api(input_sdf, method, rmsd_cutoff, energy_window):
     
@@ -324,7 +341,7 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    binary_sample(input_sdf=args.input_sdf, 
+    lbg_api(input_sdf=args.input_sdf, 
                   method=args.method,
                   rmsd_cutoff=args.rmsd_cutoff,
-                  energy_window=args.energy_window).run()
+                  energy_window=args.energy_window)

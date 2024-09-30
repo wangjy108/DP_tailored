@@ -127,9 +127,13 @@ class main():
                 cc.write(each_line)
             cc.write("\n")
         return
+
+        
     
     def read_sdf(self, db_name, save_path):
         rdmol_obj_dic = {}
+
+        prefix = ".".join(db_name.split(".")[:-1])
 
         with open(db_name, "r+") as f:
             sdf_content = [ff for ff in f.readlines()]
@@ -144,24 +148,40 @@ class main():
             
             get_real_name = str(get_mol[0].strip())
 
+            if not get_real_name:
+                get_real_name = f"{prefix}_{ii}"
+
             try:
                 rdmol_obj_dic[get_real_name]
             except Exception as e:
                 rdmol_obj_dic.setdefault(get_real_name, [])
-            
             rdmol_obj_dic[get_real_name].append(get_mol)
         
         if not os.path.exists(save_path):
             os.mkdir(save_path)
         
+        name_list = []
+        
         for kk, vv in rdmol_obj_dic.items():
-            save_file = f"{os.path.join(save_path, kk)}.sdf"
-            with open(save_file, "w+") as cc:
+            if len(vv)<2:
+                save_file = f"{os.path.join(save_path, kk)}.sdf"
+                with open(save_file, "w+") as cc:
+                    for idx, each in enumerate(vv):
+                        for line in each:
+                            cc.write(line)
+                name_list.append(kk)
+            else:
                 for idx, each in enumerate(vv):
-                    for line in each:
-                        cc.write(line)
+                    name = f"{kk}:{idx}"
+                    each[0] = name
+                    save_file = f"{os.path(save_path, name)}.sdf"
+                    with open(save_file, "w+") as cc:
+                        for ll in each:
+                            cc.write(ll)
+                    name_list.append(name)
                  
-        return [kk for kk in rdmol_obj_dic.keys()]
+        #return [kk for kk in rdmol_obj_dic.keys()]
+        return name_list
 
     def prepare(self):
         logging.info("Run prepare ....")
